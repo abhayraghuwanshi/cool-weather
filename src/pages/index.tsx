@@ -12,7 +12,7 @@ import {
 } from "@/services/weatherService";
 import { calculateLaundryScore } from "@/utils/laundryScore";
 import { getVerdict, type Verdict } from "@/utils/verdictGenerator";
-import { findBestWindow, type ClothesType } from "@/utils/bestWindow";
+import { findBestWindow, type ClothesType, adjustScoreForClothesType } from "@/utils/bestWindow";
 import ScoreCard from "@/components/ScoreCard";
 import ClothesTypePicker from "@/components/ClothesTypePicker";
 import VerdictBanner from "@/components/VerdictBanner";
@@ -53,7 +53,8 @@ export default function Home() {
     if (city) router.push(`/${encodeURIComponent(city.toLowerCase())}`);
   }
 
-  const score = weather ? calculateLaundryScore(extractWeatherInput(weather)) : 0;
+  const baseScore = weather ? calculateLaundryScore(extractWeatherInput(weather)) : 0;
+  const score = adjustScoreForClothesType(baseScore, clothesType);
   const verdict: Verdict | null = weather ? getVerdict(score) : null;
   const weatherInput = weather ? extractWeatherInput(weather) : null;
   const hours = weather ? extractHours(weather) : [];

@@ -29,6 +29,16 @@ export function adjustDryHours(base: number, type: ClothesType): number {
   return base;
 }
 
+// Heavy loads need better conditions to earn the same score — adjust the displayed score
+// Light: ×1.15 (forgiving — thin fabric dries easily)
+// Mixed: ×1.0 (baseline)
+// Heavy: ×0.80 (demanding — jeans and towels need strong conditions)
+export function adjustScoreForClothesType(score: number, type: ClothesType): number {
+  if (type === "light") return Math.min(100, Math.round(score * 1.15));
+  if (type === "heavy") return Math.round(score * 0.8);
+  return score;
+}
+
 export function hrLabel(h: number): string {
   if (h === 0) return "12 AM";
   if (h < 12) return `${h} AM`;
