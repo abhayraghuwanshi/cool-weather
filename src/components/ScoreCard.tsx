@@ -23,10 +23,11 @@ const TRACK_PATH = describeArc(CX, CY, R, -135, 135);
 interface Props {
   score: number;
   locationName: string;
+  locationRegion: string;
   locationCountry: string;
 }
 
-export default function ScoreCard({ score, locationName, locationCountry }: Props) {
+export default function ScoreCard({ score, locationName, locationRegion, locationCountry }: Props) {
   const [progress, setProgress] = useState(0);
   const color = getScoreColor(score);
 
@@ -44,8 +45,14 @@ export default function ScoreCard({ score, locationName, locationCountry }: Prop
     >
       <p className="font-display text-2xl md:text-3xl text-ink tracking-widest uppercase">
         {locationName}
+        {locationRegion && locationRegion !== locationName && (
+          <span className="font-body text-muted text-lg md:text-xl font-normal tracking-wide">
+            {", "}
+            {locationRegion}
+          </span>
+        )}
       </p>
-      <p className="font-body text-muted text-sm tracking-[0.25em] uppercase mb-1">
+      <p className="font-body text-muted text-xs tracking-[0.3em] uppercase mb-1">
         {locationCountry}
       </p>
 

@@ -2,18 +2,22 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   getWeatherByCity,
   extractWeatherInput,
+  extractHours,
   type WeatherData,
 } from "@/services/weatherService";
 import { calculateLaundryScore } from "@/utils/laundryScore";
-import { getVerdict } from "@/utils/verdictGenerator";
+import { getVerdict, type Verdict } from "@/utils/verdictGenerator";
+import { findBestWindow } from "@/utils/bestWindow";
 import ScoreCard from "@/components/ScoreCard";
 import VerdictBanner from "@/components/VerdictBanner";
 import FunnyMessage from "@/components/FunnyMessage";
 import WeatherStats from "@/components/WeatherStats";
+import BestWindow from "@/components/BestWindow";
+import HourlyTimeline from "@/components/HourlyTimeline";
 
 export default function CityPage() {
   const router = useRouter();
@@ -29,57 +33,53 @@ export default function CityPage() {
     setError("");
     setWeather(null);
     getWeatherByCity(city)
-      .then((data) => {
-        setWeather(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(`Could not find weather for "${city}".`);
-        setLoading(false);
-      });
+      .then((data) => { setWeather(data); setLoading(false); })
+      .catch(() => { setError(`Could not find weather for "${city}".`); setLoading(false); });
   }, [city]);
 
   function handleCitySubmit(e: React.FormEvent) {
     e.preventDefault();
     const c = cityInput.trim();
-    if (c) {
-      setCityInput("");
-      router.push(`/${encodeURIComponent(c.toLowerCase())}`);
-    }
+    if (c) { setCityInput(""); router.push(`/${encodeURIComponent(c.toLowerCase())}`); }
   }
 
   const cityLabel = typeof city === "string" ? city : "";
   const score = weather ? calculateLaundryScore(extractWeatherInput(weather)) : 0;
-  const verdict = weather ? getVerdict(score) : null;
+  const verdict: Verdict | null = weather ? getVerdict(score) : null;
   const weatherInput = weather ? extractWeatherInput(weather) : null;
+  const hours = weather ? extractHours(weather) : [];
+  const windowResult = findBestWindow(hours);
 
   return (
     <>
       <Head>
-        <title>
-          {cityLabel
-            ? `${cityLabel.charAt(0).toUpperCase() + cityLabel.slice(1)} — Cool Weather`
-            : "Cool Weather"}
-        </title>
-        <meta
-          name="description"
-          content={`Laundry weather score for ${cityLabel}.`}
-        />
+        <title>{cityLabel ? `${cityLabel.charAt(0).toUpperCase() + cityLabel.slice(1)} — Cool Weather` : "Cool Weather"}</title>
+        <meta name="description" content={`Laundry weather score for ${cityLabel}.`} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="min-h-screen flex flex-col">
-        <header className="w-full flex items-center justify-between px-6 py-5 border-b-2 border-ink/10">
-          <div>
-            <Link
-              href="/"
-              className="font-display text-xl tracking-widest text-ink uppercase hover:text-gold transition-colors"
-            >
+      <div className="min-h-screen lg:h-screen flex flex-col lg:overflow-hidden">
+
+        <AnimatePresence>
+          {verdict && (
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="hidden lg:block h-[3px] origin-left"
+              style={{ backgroundColor: verdict.color }}
+            />
+          )}
+        </AnimatePresence>
+
+        <header className="flex items-center justify-between px-6 lg:px-8 py-4 border-b-2 border-ink/8 shrink-0">
+          <div className="flex items-baseline gap-3">
+            <Link href="/" className="font-display text-lg tracking-widest text-ink uppercase hover:text-gold transition-colors">
               Cool Weather
             </Link>
-            <p className="font-body text-muted text-xs tracking-wider hidden sm:block">
-              The laundry forecast
-            </p>
+            <span className="font-body text-muted text-xs tracking-wider hidden sm:inline">
+              — the laundry forecast
+            </span>
           </div>
           <form onSubmit={handleCitySubmit} className="flex items-center gap-2">
             <input
@@ -87,7 +87,7 @@ export default function CityPage() {
               placeholder="Search a city..."
               value={cityInput}
               onChange={(e) => setCityInput(e.target.value)}
-              className="font-body text-base bg-transparent border-b-2 border-ink/25 focus:border-ink focus:outline-none px-1 py-0.5 w-32 sm:w-44 text-ink placeholder:text-muted/70 transition-colors"
+              className="font-body text-sm bg-transparent border-b-2 border-ink/20 focus:border-ink focus:outline-none px-1 py-0.5 w-28 sm:w-40 text-ink placeholder:text-muted/60 transition-colors"
             />
             <button
               type="submit"
@@ -98,50 +98,59 @@ export default function CityPage() {
           </form>
         </header>
 
-        <main className="flex-1 flex flex-col items-center justify-center gap-6 px-6 py-10 w-full max-w-2xl mx-auto">
-          {loading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center gap-4"
-            >
-              <div className="w-8 h-8 border-2 border-ink/20 border-t-ink rounded-full animate-spin" />
-              <p className="font-body text-muted text-xl capitalize">
-                Looking up {cityLabel}...
-              </p>
-            </motion.div>
-          )}
+        <main className="flex-1 overflow-hidden">
 
-          {!loading && error && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center gap-3 text-center"
-            >
-              <p className="font-display text-2xl text-ink">City not found.</p>
-              <p className="font-body text-muted text-lg">{error}</p>
-            </motion.div>
+          {(loading || error) && (
+            <div className="h-full flex flex-col items-center justify-center gap-4 px-6 text-center">
+              {loading && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4">
+                  <div className="w-7 h-7 border-2 border-ink/20 border-t-ink rounded-full animate-spin" />
+                  <p className="font-body text-muted text-xl capitalize">Looking up {cityLabel}...</p>
+                </motion.div>
+              )}
+              {error && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-2">
+                  <p className="font-display text-2xl text-ink">City not found.</p>
+                  <p className="font-body text-muted text-lg">{error}</p>
+                </motion.div>
+              )}
+            </div>
           )}
 
           {!loading && !error && weather && verdict && weatherInput && (
-            <div className="flex flex-col items-center gap-6 w-full">
-              <ScoreCard
-                score={score}
-                locationName={weather.location.name}
-                locationCountry={weather.location.country}
-              />
-              <VerdictBanner label={verdict.label} color={verdict.color} />
-              <FunnyMessage message={verdict.message} />
-              <WeatherStats weather={weatherInput} />
+            <div className="h-full flex flex-col lg:grid lg:grid-cols-[2fr_3fr]">
+
+              <div className="flex flex-col items-center justify-center gap-3 p-6 lg:p-10 lg:border-r-2 lg:border-ink/8 overflow-hidden">
+                <ScoreCard
+                  score={score}
+                  locationName={weather.location.name}
+                  locationRegion={weather.location.region}
+                  locationCountry={weather.location.country}
+                />
+                <VerdictBanner label={verdict.label} color={verdict.color} />
+                <FunnyMessage message={verdict.message} />
+              </div>
+
+              <div className="flex flex-col justify-center gap-5 p-6 lg:px-12 lg:py-8 overflow-auto lg:overflow-hidden">
+                <BestWindow result={windowResult} />
+                <HourlyTimeline
+                  hourlyScores={windowResult.hourlyScores}
+                  windowStart={windowResult.windowStart}
+                  windowEnd={windowResult.windowEnd}
+                />
+                <WeatherStats weather={weatherInput} />
+              </div>
+
             </div>
           )}
         </main>
 
-        <footer className="w-full text-center py-4 border-t-2 border-ink/10">
-          <p className="font-body text-muted text-sm">
+        <footer className="lg:hidden w-full text-center py-3 border-t-2 border-ink/8 shrink-0">
+          <p className="font-body text-muted text-xs">
             The only weather app that judges your laundry decisions.
           </p>
         </footer>
+
       </div>
     </>
   );
