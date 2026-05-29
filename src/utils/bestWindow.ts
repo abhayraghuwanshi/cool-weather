@@ -54,10 +54,13 @@ function estimateDryHours(avgScore: number): number {
   return 5;                     // poor — slow drying, mixed load ~5 hrs
 }
 
-export function findBestWindow(hours: HourlyWeather[]): WindowResult {
+// fromHour restricts where the window search begins (pass localHour for today).
+// hourlyScores always cover 6 AM–8 PM for the timeline regardless.
+export function findBestWindow(hours: HourlyWeather[], fromHour?: number): WindowResult {
   const FIRST_HOUR = 6;
   const LAST_HANG = 15; // don't start hanging after 3 PM
   const MIN_SCORE = 50;
+  const searchFrom = fromHour ?? FIRST_HOUR;
 
   const parsed: HourScore[] = hours
     .map((h) => ({
@@ -74,7 +77,7 @@ export function findBestWindow(hours: HourlyWeather[]): WindowResult {
     }))
     .filter((h) => h.hour >= FIRST_HOUR && h.hour <= 20);
 
-  // Find the longest consecutive run where score >= MIN_SCORE and start <= LAST_HANG
+  // Find the longest consecutive run where score >= MIN_SCORE and start >= searchFrom and <= LAST_HANG
   let bestStart = -1;
   let bestEnd = -1;
   let bestLen = 0;
@@ -83,7 +86,7 @@ export function findBestWindow(hours: HourlyWeather[]): WindowResult {
   let i = 0;
   while (i < parsed.length) {
     const { hour, score } = parsed[i];
-    if (score >= MIN_SCORE && hour <= LAST_HANG) {
+    if (score >= MIN_SCORE && hour >= searchFrom && hour <= LAST_HANG) {
       let j = i;
       while (j < parsed.length && parsed[j].score >= MIN_SCORE) j++;
       const slice = parsed.slice(i, j);

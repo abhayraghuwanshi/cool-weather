@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
@@ -32,7 +32,7 @@ export default function CityPage() {
   const [cityInput, setCityInput] = useState("");
   const [clothesType, setClothesType] = useState<ClothesType>("mixed");
 
-  useEffect(() => {
+  const fetchCity = useCallback(() => {
     if (!city || typeof city !== "string") return;
     setLoading(true);
     setError("");
@@ -41,6 +41,15 @@ export default function CityPage() {
       .then((data) => { setWeather(data); setLoading(false); })
       .catch(() => { setError(`Could not find weather for "${city}".`); setLoading(false); });
   }, [city]);
+
+  useEffect(() => { fetchCity(); }, [fetchCity]);
+
+  // Refresh when tab becomes visible again (handles mobile app-switch / bfcache)
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === "visible") fetchCity(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [fetchCity]);
 
   function handleCitySubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,10 +61,20 @@ export default function CityPage() {
   const weatherInput = weather ? extractWeatherInput(weather) : null;
   const hours = weather ? extractHours(weather) : [];
   const tomorrowHours = weather ? extractTomorrowHours(weather) : [];
-  const windowResult = findBestWindow(hours);
-  const tomorrowWindowResult = findBestWindow(tomorrowHours);
   const localHour = weather ? extractLocalHour(weather) : undefined;
-  const rainAlert = weather && localHour !== undefined ? checkRainAlert(weather, localHour) : null;
+  const windowResult = findBestWindow(hours, localHour);
+  const tomorrowWindowResult = findBestWindow(tomorrowHours);
+  const rawRainAlert = weather && localHour !== undefined ? checkRainAlert(weather, localHour) : null;
+  // Only show "soon" alert if rain arrives before the planned collect time —
+  // that's the only case where it adds new info ("act sooner than planned").
+  // Rain after collect time means the user is already safe following the window.
+  const rainAlert = rawRainAlert?.type === "soon" &&
+    windowResult.hasWindow &&
+    windowResult.collectHour !== null &&
+    rawRainAlert.rainHour !== undefined &&
+    rawRainAlert.rainHour >= windowResult.collectHour
+    ? null
+    : rawRainAlert;
 
   const noTodayWindow = !windowResult.hasWindow || windowResult.hangHour === null || windowResult.collectHour === null;
   const isTodayPast = !noTodayWindow && localHour !== undefined && localHour >= windowResult.collectHour!;
