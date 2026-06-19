@@ -164,3 +164,15 @@
 {"capturedAt":"2026-06-18T08:24:11.383Z","city":"Berlin","targetDate":"2026-06-19","hasWindow":true,"hangHour":8,"collectHour":11,"avgScore":79}
 {"capturedAt":"2026-06-18T08:24:11.387Z","city":"Cape Town","targetDate":"2026-06-19","hasWindow":true,"hangHour":11,"collectHour":14,"avgScore":62}
 {"capturedAt":"2026-06-18T08:24:11.389Z","city":"Sao Paulo","targetDate":"2026-06-19","hasWindow":true,"hangHour":9,"collectHour":12,"avgScore":73}
+{"capturedAt":"2026-06-19T08:52:29.442Z","city":"Mumbai","targetDate":"2026-06-20","hasWindow":true,"hangHour":6,"collectHour":8,"avgScore":81}
+{"capturedAt":"2026-06-19T08:52:29.444Z","city":"London","targetDate":"2026-06-20","hasWindow":true,"hangHour":8,"collectHour":11,"avgScore":76}
+{"capturedAt":"2026-06-19T08:52:29.447Z","city":"Tokyo","targetDate":"2026-06-20","hasWindow":false,"hangHour":null,"collectHour":null,"avgScore":0}
+{"capturedAt":"2026-06-19T08:52:29.448Z","city":"Delhi","targetDate":"2026-06-20","hasWindow":true,"hangHour":8,"collectHour":11,"avgScore":64}
+{"capturedAt":"2026-06-19T08:52:29.452Z","city":"Singapore","targetDate":"2026-06-20","hasWindow":true,"hangHour":12,"collectHour":14,"avgScore":78}
+{"capturedAt":"2026-06-19T08:52:29.453Z","city":"New York","targetDate":"2026-06-20","hasWindow":true,"hangHour":6,"collectHour":8,"avgScore":87}
+{"capturedAt":"2026-06-19T08:52:29.454Z","city":"Sydney","targetDate":"2026-06-20","hasWindow":true,"hangHour":6,"collectHour":9,"avgScore":66}
+{"capturedAt":"2026-06-19T08:52:29.500Z","city":"Bangalore","targetDate":"2026-06-20","hasWindow":true,"hangHour":8,"collectHour":10,"avgScore":72}
+{"capturedAt":"2026-06-19T08:52:29.557Z","city":"Dubai","targetDate":"2026-06-20","hasWindow":true,"hangHour":6,"collectHour":8,"avgScore":90}
+{"capturedAt":"2026-06-19T08:52:29.562Z","city":"Sao Paulo","targetDate":"2026-06-20","hasWindow":true,"hangHour":10,"collectHour":14,"avgScore":60}
+{"capturedAt":"2026-06-19T08:52:29.563Z","city":"Berlin","targetDate":"2026-06-20","hasWindow":true,"hangHour":6,"collectHour":8,"avgScore":83}
+{"capturedAt":"2026-06-19T08:52:29.564Z","city":"Cape Town","targetDate":"2026-06-20","hasWindow":true,"hangHour":6,"collectHour":9,"avgScore":67}
